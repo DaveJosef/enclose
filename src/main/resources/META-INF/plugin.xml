@@ -1,0 +1,26 @@
+<idea-plugin>
+    <id>org.ifpb.Enclose</id>
+    <name>Enclose</name>
+    <version>1.0-SNAPSHOT</version>
+    <vendor email="support@ifpb.com" url="http://www.ifpb.com">IFPB</vendor>
+
+    <description><![CDATA[
+    Refatoração para Lei de Demeter em seus códigos.<br>
+    ]]></description>
+
+    <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Add your extensions here -->
+    </extensions>
+
+    <actions>
+        <!-- Add your actions here -->
+        <group id="Enclose.FirstAction" text="Enclose Demo" description="About Enclose">
+            <add-to-group group-id="MainMenu" anchor="last"/>
+            <action class="com.ifpb.enclose.FirstAction" id="Enclose.Actions.FirstAction" text="Say Hello"/>
+        </group>
+    </actions>
+</idea-plugin>
