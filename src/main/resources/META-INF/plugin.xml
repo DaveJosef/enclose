@@ -10,17 +10,27 @@
 
     <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
          on how to target different products -->
+    <depends>com.intellij.java</depends>
     <depends>com.intellij.modules.platform</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <!-- Add your extensions here -->
+        <intentionAction>
+            <className>com.ifpb.enclose.RefactorIntention</className>
+            <category>Refactor Intentions</category>
+        </intentionAction>
     </extensions>
 
     <actions>
         <!-- Add your actions here -->
-        <group id="Enclose.FirstAction" text="Enclose Demo" description="About Enclose">
-            <add-to-group group-id="MainMenu" anchor="last"/>
-            <action class="com.ifpb.enclose.FirstAction" id="Enclose.Actions.FirstAction" text="Say Hello"/>
+        <group id="Enclose.Actions"
+               text="Enclose Demo"
+               description="About Enclose">
+            <add-to-group group-id="MainMenu"
+                          anchor="last"/>
+            <action class="com.ifpb.enclose.FirstAction"
+                    id="Enclose.Actions.FirstAction"
+                    text="Say Hello"
+                    description="About Enclose First Action"/>
         </group>
     </actions>
 </idea-plugin>

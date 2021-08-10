@@ -20,5 +20,5 @@ nb-configuration.xml
 .idea/**
 **/*.iml 
 
-**/gradle
+**build/
 **/.gradle
