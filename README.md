@@ -1,6 +1,7 @@
 # enclose
 Ferramenta para avaliar violações de Lei de Demeter.
 
+```
 // BEFORE
 // target class
 class A {
@@ -17,7 +18,9 @@ class C {
     a.getElements().add(new A());
   }
 }
+```
 
+```
 // AFTER
 // target class
 class A {
@@ -39,3 +42,4 @@ class C {
     a.yourNewMethod(new A());
   }
 }
+```
