@@ -1,5 +1,6 @@
 # enclose
 Ferramenta para avaliar violações de Lei de Demeter.
+[versão mínima do JDK: 16]
 
 ```
 // BEFORE
