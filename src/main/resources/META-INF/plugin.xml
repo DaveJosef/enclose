@@ -21,16 +21,5 @@
     </extensions>
 
     <actions>
-        <!-- Add your actions here -->
-        <group id="Enclose.Actions"
-               text="Enclose Demo"
-               description="About Enclose">
-            <add-to-group group-id="MainMenu"
-                          anchor="last"/>
-            <action class="com.ifpb.enclose.FirstAction"
-                    id="Enclose.Actions.FirstAction"
-                    text="Say Hello"
-                    description="About Enclose First Action"/>
-        </group>
     </actions>
 </idea-plugin>

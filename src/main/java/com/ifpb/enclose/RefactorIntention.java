@@ -6,6 +6,7 @@ import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction;
 import com.intellij.codeInspection.util.IntentionFamilyName;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -20,7 +21,7 @@ import java.util.List;
 
 public class RefactorIntention extends PsiElementBaseIntentionAction implements IntentionAction {
     private CallList calllist = new CallList();
-    private Call chosenCall;
+    private Call chosenCall = new Call();
     @Override
     public void invoke(@NotNull Project project, Editor editor, @NotNull PsiElement element) throws IncorrectOperationException {
 
@@ -31,28 +32,38 @@ public class RefactorIntention extends PsiElementBaseIntentionAction implements 
         String NEW_METHOD_NAME = "yourNewestMethod";
         String NEW_PARAMETER_NAME = "yourNewestParameter";
         PsiClass classeAlvo = PsiShortNamesCache.getInstance(project).getClassesByName(chosenCall.trgtClass(), GlobalSearchScope.allScope(project))[0];
+        Messages.showMessageDialog(project, classeAlvo.getText(), "classeAlvo:", null);
         PsiClass classeCliente = PsiShortNamesCache.getInstance(project).getClassesByName(chosenCall.clientClass(), GlobalSearchScope.allScope(project))[0];
-        PsiMethodCallExpression chamada = PsiTreeUtil.getParentOfType(element, PsiMethodCallExpression.class);
-        while (PsiTreeUtil.getParentOfType(chamada, PsiMethodCallExpression.class) instanceof PsiMethodCallExpression) {
-            chamada = PsiTreeUtil.getParentOfType(chamada, PsiMethodCallExpression.class);
-        }
+        Messages.showMessageDialog(project, classeCliente.getText(), "classeCliente:", null);
+        PsiMethodCallExpression chamada = PsiTreeUtil.getParentOfType(element, PsiMethodCallExpression.class); // retorna a.getElements().add()
+        Messages.showMessageDialog(project, chamada.getText(), "chamada:", null);
         PsiMethodCallExpression novaChamadaCliente = (PsiMethodCallExpression) factory.createExpressionFromText("x." + NEW_METHOD_NAME + "()", null);
+        Messages.showMessageDialog(project, novaChamadaCliente.getText(), "novaChamadaCliente:", null);
         PsiMethod novoMetodo = factory.createMethodFromText("public " + NEW_METHOD_NAME + "() " + "{}", null);
+        Messages.showMessageDialog(project, novoMetodo.getText(), "novoMetodo:", null);
         PsiReturnStatement novoReturn = (PsiReturnStatement) factory.createStatementFromText("return ;", null);
+        Messages.showMessageDialog(project, novoReturn.getText(), "novoReturn:", null);
         PsiType tipoRetorno = chamada.getType();
+        Messages.showMessageDialog(project, tipoRetorno.getCanonicalText(), "tipoRetorno:", null);
         PsiMethodCallExpression novaChamada = (PsiMethodCallExpression) factory.createExpressionFromText(chamada.getText(), null);
-        List<PsiExpression> listaDeExpressoes = new ArrayList<>();
-        List<PsiType> listaDeNovosTipos = new ArrayList<>();
-        List<PsiParameter> listaDeNovosParametros = new ArrayList<>();
-        List<PsiReferenceExpression> listaDeNovasReferencias = new ArrayList<>();
+        Messages.showMessageDialog(project, novaChamada.getText(), "novaChamada:", null);
+        List<PsiExpression> listaDeExpressoes = new ArrayList<PsiExpression>();
+        List<PsiType> listaDeNovosTipos = new ArrayList<PsiType>();
+        List<PsiParameter> listaDeNovosParametros = new ArrayList<PsiParameter>();
+        List<PsiReferenceExpression> listaDeNovasReferencias = new ArrayList<PsiReferenceExpression>();
         PsiMethodCallExpression percorredor = chamada;
+        while (!(percorredor.getMethodExpression().getQualifierExpression() instanceof PsiReferenceExpression)) {
+            Messages.showMessageDialog(project, percorredor.getMethodExpression().getReferenceName(), "chamada.getMethodExpression().getReferenceName():", null);
+            percorredor = (PsiMethodCallExpression) percorredor.getMethodExpression().getQualifierExpression();
+        }
+        percorredor = chamada;
         int n=0;
         while (!(percorredor.getMethodExpression().getQualifierExpression() instanceof PsiReferenceExpression)) {
             if (percorredor.getArgumentList().getExpressions() != null) {
                 for (PsiExpression expr : percorredor.getArgumentList().getExpressions()) {
                     n++;
                     listaDeExpressoes.add(expr);
-                    listaDeNovosParametros.add(factory.createParameterFromText(NEW_PARAMETER_NAME + n, null));
+                    listaDeNovosParametros.add(factory.createParameterFromText(NEW_PARAMETER_NAME + n + ",", null));
                     listaDeNovosTipos.add(factory.createTypeFromText(expr.getType().getCanonicalText(), null));
                     listaDeNovasReferencias.add((PsiReferenceExpression) factory.createExpressionFromText(NEW_PARAMETER_NAME + n, null));
                 }
@@ -68,6 +79,7 @@ public class RefactorIntention extends PsiElementBaseIntentionAction implements 
             if (percorredor.getArgumentList().getExpressions() != null) {
                 for (PsiExpression expr : percorredor.getArgumentList().getExpressions()) {
                     expr.replace(listaDeNovasReferencias.get(n));
+                    Messages.showMessageDialog(project, listaDeNovasReferencias.get(n).getText(), "listaDeNovasReferencias.get(n):", null);
                     n++;
                 }
             }
@@ -100,28 +112,24 @@ public class RefactorIntention extends PsiElementBaseIntentionAction implements 
         chamada.replace(novaChamadaCliente);
         classeCliente = (PsiClass) codeStylist.reformat(classeCliente);
 
-        // a.m1().m2().m3().m4();
+        // a.m1().getElements().add().m4();
+
 
     }
 
     @Override
     public boolean isAvailable(@NotNull Project project, Editor editor, @NotNull PsiElement element) {
-        if (element == null || PsiTreeUtil.getParentOfType(element, PsiMethodCallExpression.class) == null) {
+        if (element == null) {
+            return false;
+        }
+        PsiMethodCallExpression chamada = PsiTreeUtil.getParentOfType(element, PsiMethodCallExpression.class);
+        if (chamada == null) {
             return false;
         }
 
-        PsiMethodCallExpression chamada = PsiTreeUtil.getParentOfType(element, PsiMethodCallExpression.class);
-        while (PsiTreeUtil.getParentOfType(chamada, PsiMethodCallExpression.class) instanceof PsiMethodCallExpression) {
-            for (Call call : calllist.calls()) {
-                if (call.collectionMethod().equals(chamada.getMethodExpression().getLastChild().getText())) {
-                    this.chosenCall = call;
-                    return true;
-                }
-            }
-            chamada = PsiTreeUtil.getParentOfType(chamada, PsiMethodCallExpression.class);
+        if (chamada.getText().contains("." + chosenCall.trgtMethod() + "(") && chamada.getText().contains("." + chosenCall.collectionMethod() + "(")) {
+            return true;
         }
-
-
         return false;
     }
 
