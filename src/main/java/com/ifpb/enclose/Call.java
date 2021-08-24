@@ -1,4 +1,6 @@
-class Call {
+package com.ifpb.enclose;
+
+public class Call {
     private final String call;
 
 	public Call() {
