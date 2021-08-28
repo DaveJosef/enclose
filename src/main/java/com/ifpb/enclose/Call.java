@@ -16,13 +16,11 @@ public class Call {
     }
     
     public String trgtMethod() {
-		String callElement = this.call.substring(1, call.length() -1 ).split(", ")[1];
-        return callElement.substring(0, callElement.length() -2);
+		return this.call.substring(1, call.length() -1 ).split(", ")[1].replaceAll("[^a-zA-Z0-9]", "");
     }
     
     public String collection() {
-		String callElement = this.call.substring(1, call.length() -1 ).split(", ")[2];
-        return callElement.substring(0, callElement.length() -3);
+		return this.call.substring(1, call.length() -1 ).split(", ")[2];
     }
     
     public String clientClass() {
@@ -30,8 +28,7 @@ public class Call {
     }
     
     public String clientMethod() {
-		String callElement = this.call.substring(1, call.length() -1 ).split(", ")[4];
-        return callElement.substring(0, callElement.length() -2);
+		return this.call.substring(1, call.length() -1 ).split(", ")[4].replaceAll("[^a-zA-Z0-9]", "");
     }
     
     public String collectionMethod() {
