@@ -1,6 +1,6 @@
 # enclose
 Ferramenta para avaliar violações de Lei de Demeter.
-[versão mínima do JDK: 11]
+[versão do JDK: 11]
 
 ```
 // BEFORE
@@ -31,8 +31,8 @@ class A {
     return this.elements;
   }
   
-  public boolean yourNewMethod(A yourNewParameter1) {
-    return this.getElements().add(yourNewParameter1);
+  public boolean newMethod(A newParameter1) {
+    return this.getElements().add(newParameter1);
   }
 }
   
@@ -40,7 +40,7 @@ class A {
 class C {
   private A a;
   public void m() {
-    a.yourNewMethod(new A());
+    a.newMethod(new A());
   }
 }
 ```
