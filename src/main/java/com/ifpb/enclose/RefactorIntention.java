@@ -1,6 +1,5 @@
 package com.ifpb.enclose;
 
-//import com.ifpb.enclose.Call;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction;
 import com.intellij.codeInspection.util.IntentionFamilyName;
@@ -21,6 +20,7 @@ import java.util.List;
 public class RefactorIntention extends PsiElementBaseIntentionAction implements IntentionAction {
     private CallList calllist = new CallList();
     private Call chosenCall = new Call();
+    private int refactorCount = 0;
     @Override
     public void invoke(@NotNull Project project, Editor editor, @NotNull PsiElement element) throws IncorrectOperationException {
 
@@ -29,7 +29,6 @@ public class RefactorIntention extends PsiElementBaseIntentionAction implements 
         final PsiMethodCallExpressionUtils util = new PsiMethodCallExpressionUtils();
         final PsiShortNamesCache cache = PsiShortNamesCache.getInstance(project);
 
-        PsiClass classeAlvo = cache.getClassesByName(chosenCall.trgtClass(), GlobalSearchScope.allScope(project))[0];
         PsiClass classeCliente = cache.getClassesByName(chosenCall.clientClass(), GlobalSearchScope.allScope(project))[0];
         PsiMethodCallExpression chamada = PsiTreeUtil.getParentOfType(element, PsiMethodCallExpression.class);
 
@@ -41,15 +40,13 @@ public class RefactorIntention extends PsiElementBaseIntentionAction implements 
         /* Coletar as PsiParameterLists */
         List<PsiExpressionList> listOfArguments = new ArrayList<>();
         PsiMethodCallExpression p = chamada;
-        while (!(p.getMethodExpression().getQualifierExpression() instanceof PsiReferenceExpression) && !p.getMethodExpression().getReferenceName().equals(chosenCall.trgtMethod())) {
             listOfArguments.add(p.getArgumentList());
             p = (PsiMethodCallExpression) p.getMethodExpression().getQualifierExpression();
-        }
         listOfArguments.add(p.getArgumentList());
 
         /* Criar metodo estatico em A.java */
         PsiType tipoDeRetorno = chamada.getType();
-        PsiMethod newMethod = factory.createMethod("newMethod", tipoDeRetorno);
+        PsiMethod newMethod = factory.createMethod("newMethod"+this.refactorCount, tipoDeRetorno);
         PsiMethodCallExpression newChamada = (PsiMethodCallExpression) factory.createExpressionFromText(chamada.getText(), null);
         PsiStatement newReturnStatement = factory.createStatementFromText("return;", null);
 
@@ -73,7 +70,6 @@ public class RefactorIntention extends PsiElementBaseIntentionAction implements 
         /* Alterando newChamada */
         int j=0;
         PsiMethodCallExpression q = newChamada;
-        while (!(q.getMethodExpression().getQualifierExpression() instanceof PsiReferenceExpression) && !q.getMethodExpression().getReferenceName().equals(chosenCall.trgtMethod())) {
             for (PsiExpression expr : q.getArgumentList().getExpressions()) {
                 if (expr != null) {
                     PsiExpression newReferenceExpression = factory.createExpressionFromText(listOfParameters.get(j).getName(), null);
@@ -82,7 +78,6 @@ public class RefactorIntention extends PsiElementBaseIntentionAction implements 
                 }
             }
             q = (PsiMethodCallExpression) q.getMethodExpression().getQualifierExpression();
-        }
         for (PsiExpression expr : q.getArgumentList().getExpressions()) {
             if (expr != null) {
                 PsiExpression newReferenceExpression = factory.createExpressionFromText(listOfParameters.get(j).getName(), null);
@@ -95,12 +90,11 @@ public class RefactorIntention extends PsiElementBaseIntentionAction implements 
 
         newReturnStatement.addBefore(newChamada, newReturnStatement.getLastChild());
         newMethod.getBody().addBefore(newReturnStatement, newMethod.getBody().getLastChild());
+
+        PsiMethodCallExpression r = (PsiMethodCallExpression) chamada.getMethodExpression().getQualifierExpression();
+        PsiClass classeAlvo = cache.getClassesByName(r.getMethodExpression().getQualifierExpression().getType().getPresentableText(false), GlobalSearchScope.allScope(project))[0];
         classeAlvo.addBefore(newMethod, classeAlvo.getLastChild());
 
-        PsiMethodCallExpression r = chamada;
-        while (!(r.getMethodExpression().getQualifierExpression() instanceof PsiReferenceExpression) && !r.getMethodExpression().getQualifierExpression().getType().equals(chosenCall.trgtClass())) {
-            r = (PsiMethodCallExpression) r.getMethodExpression().getQualifierExpression();
-        }
         PsiMethodCallExpression newChamadaEmC = (PsiMethodCallExpression) factory.createExpressionFromText(r.getMethodExpression().getQualifierExpression().getText()+"."+newMethod.getName()+"()", null);
         for (PsiExpressionList PsiExpressionListN : listOfArguments) {
             for (PsiExpression expr : PsiExpressionListN.getExpressions()) {
@@ -109,6 +103,7 @@ public class RefactorIntention extends PsiElementBaseIntentionAction implements 
         }
         chamada.replace(newChamadaEmC);
 
+        this.refactorCount++;
     }
 
     @Override
@@ -117,13 +112,14 @@ public class RefactorIntention extends PsiElementBaseIntentionAction implements 
             return false;
         }
         PsiMethodCallExpression chamada = PsiTreeUtil.getParentOfType(element, PsiMethodCallExpression.class);
-        if (chamada == null) {
+        PsiMethod containingMethod = PsiTreeUtil.getParentOfType(element, PsiMethod.class);
+        if (chamada == null || containingMethod == null) {
             return false;
         }
 
         /* Escolher uma call */
-        for (Call c : this.calllist.calls()) {
-            if (chamada.getText().contains("." + c.trgtMethod() + "(") && chamada.getText().contains("." + c.collectionMethod() + "(")) {
+        for (Call c : calllist.calls()) {
+            if (chamada.getText().contains("." + c.collectionMethod() + "(")) {
                 this.chosenCall = c;
             }
         }
@@ -131,6 +127,9 @@ public class RefactorIntention extends PsiElementBaseIntentionAction implements 
         /* reduzir chamada até .add() */
         while (!(chamada.getMethodExpression().getQualifierExpression() instanceof PsiReferenceExpression) && !chamada.getMethodExpression().getReferenceName().equals(chosenCall.collectionMethod())) {
             chamada = (PsiMethodCallExpression) chamada.getMethodExpression().getQualifierExpression();
+        }
+        if (!(chamada.getMethodExpression().getQualifierExpression() instanceof PsiMethodCallExpression)) {
+            return false;
         }
         if (chamada.getType() == null) {
             return false;

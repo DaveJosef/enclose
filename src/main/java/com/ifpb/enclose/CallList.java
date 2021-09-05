@@ -9,7 +9,7 @@ public class CallList {
     public CallList() {
         this.list = new ArrayList<Call>();
         this.list.add(new Call());
-        this.list.add(new Call("<A, getElements[], java.util.List<A>, C, m[], set[A]>"));
+        this.list.add(new Call("<java.utils.List<A>, set[int, A], boolean, C, m[], void, null>"));
     }
 
     public CallList(Call c) {
