@@ -104,6 +104,35 @@ public class RefactorIntention extends PsiElementBaseIntentionAction implements 
         chamada.replace(newChamadaEmC);
 
         this.refactorCount++;
+
+        /* Print methods in class */
+        PsiMethod[] dgbMethods = classeAlvo.getMethods();
+        System.out.println("Without Visitor");
+        for (int k = 0; i < dgbMethods.length; i++) {
+            System.out.println(dgbMethods[k]);
+        }
+
+        /* Print methods in class while using Visitor */
+        System.out.println("With Visitor");
+        classeAlvo.accept(new JavaRecursiveElementVisitor() {
+            @Override
+            public void visitMethod(PsiMethod method) {
+                super.visitMethod(method);
+                System.out.println(method);
+            }
+        });
+
+        /* Print methods in class while using MethodVisitor */
+        System.out.println("With MethodVisitor");
+        MethodVisitor visitor = new MethodVisitor();
+        classeAlvo.accept(visitor);
+        visitor.debug();
+
+        /* Print visitor visits */
+        System.out.print("With the PrintMethodVisitor");
+        PrintMethodVisitor visitorString = new PrintMethodVisitor();
+        classeAlvo.accept(visitorString);
+        System.out.println(visitorString.visitToString());
     }
 
     @Override
