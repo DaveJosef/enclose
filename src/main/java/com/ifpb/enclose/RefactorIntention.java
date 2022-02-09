@@ -111,6 +111,7 @@ public class RefactorIntention extends PsiElementBaseIntentionAction implements 
         for (int k = 0; i < dgbMethods.length; i++) {
             System.out.println(dgbMethods[k]);
         }
+        System.out.println("\n");
 
         /* Print methods in class while using Visitor */
         System.out.println("With Visitor");
@@ -121,18 +122,28 @@ public class RefactorIntention extends PsiElementBaseIntentionAction implements 
                 System.out.println(method);
             }
         });
+        System.out.println("\n");
 
         /* Print methods in class while using MethodVisitor */
         System.out.println("With MethodVisitor");
         MethodVisitor visitor = new MethodVisitor();
         classeAlvo.accept(visitor);
         visitor.debug();
+        System.out.println("\n");
 
         /* Print visitor visits */
         System.out.print("With the PrintMethodVisitor");
         PrintMethodVisitor visitorString = new PrintMethodVisitor();
         classeAlvo.accept(visitorString);
         System.out.println(visitorString.visitToString());
+        System.out.println("\n");
+
+        /* Print methods in each file of open project */
+        System.out.println("With the SmartParseMethod");
+        MethodVisitor parserVisitor = new MethodVisitor();
+        List<PsiMethod> methodParser = new SmartParseMethod().visitor(parserVisitor).from(project, classeAlvo);
+        parserVisitor.debug();
+        System.out.println("\n");
     }
 
     @Override

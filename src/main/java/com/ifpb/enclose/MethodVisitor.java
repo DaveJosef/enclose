@@ -40,6 +40,6 @@ public class MethodVisitor extends JavaRecursiveElementVisitor {
 
     public void debug() {
         System.out.println(getMDS());
-        System.out.println(getMethod(1, "getElements"));
+        //System.out.println(getMethod(1, "getElements"));
     }
 }
