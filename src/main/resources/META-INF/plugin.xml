@@ -21,5 +21,8 @@
     </extensions>
 
     <actions>
+        <action class="com.ifpb.actions.ListCallsAction" description="Lista chamadas do projeto" text="Listar chamadas" icon="MyPluginIcons.ListCallsAction">
+            <add-to-group group-id="ToolsMenu" anchor="first"></add-to-group>
+        </action>
     </actions>
 </idea-plugin>

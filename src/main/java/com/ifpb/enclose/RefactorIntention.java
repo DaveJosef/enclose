@@ -1,5 +1,7 @@
 package com.ifpb.enclose;
 
+import com.ifpb.visitor.MethodVisitor;
+import com.ifpb.visitor.PrintMethodVisitor;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction;
 import com.intellij.codeInspection.util.IntentionFamilyName;

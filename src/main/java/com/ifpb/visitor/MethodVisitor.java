@@ -1,4 +1,4 @@
-package com.ifpb.enclose;
+package com.ifpb.visitor;
 
 import com.intellij.psi.JavaRecursiveElementVisitor;
 import com.intellij.psi.PsiMethod;

@@ -1,11 +1,11 @@
 package com.ifpb.enclose;
 
+import com.ifpb.visitor.MethodVisitor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
-import com.intellij.psi.search.PsiShortNamesCache;
 
 import java.util.ArrayList;
 import java.util.List;
