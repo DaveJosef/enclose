@@ -4,6 +4,8 @@ import com.intellij.psi.JavaRecursiveElementVisitor;
 import com.intellij.psi.PsiMethodCallExpression;
 
 public class PrintMethodCallVisitor extends JavaRecursiveElementVisitor {
+    private String currentVisit;
+    private String lastVisit = "";
     private StringBuilder builder = new StringBuilder();
 
     public PrintMethodCallVisitor() {
@@ -20,7 +22,11 @@ public class PrintMethodCallVisitor extends JavaRecursiveElementVisitor {
 
     @Override
     public void visitMethodCallExpression(PsiMethodCallExpression expression) {
-        builder.append(expression.getTextOffset()).append(" ").append(expression.getText()).append("\n");
+        this.currentVisit = expression.getText();
+        //if (!this.lastVisit.contains(this.currentVisit))
+            builder.append(expression.getTextOffset()).append(" ").append(expression.getText()).append("\n");
+
+        this.lastVisit = this.currentVisit;
         super.visitMethodCallExpression(expression);
     }
 
