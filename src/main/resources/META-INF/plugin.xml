@@ -18,11 +18,15 @@
             <className>com.ifpb.enclose.RefactorIntention</className>
             <category>Refactor Intentions</category>
         </intentionAction>
+        <toolWindow factoryClass="com.ifpb.window.MyToolWindowFactory" id="Calls List" secondary="true" icon="AllIcons.General.Modified" anchor="bottom" />
     </extensions>
 
     <actions>
         <action class="com.ifpb.actions.ListCallsAction" description="Lista chamadas do projeto" text="Listar chamadas" icon="MyPluginIcons.ListCallsAction">
             <add-to-group group-id="ToolsMenu" anchor="first"></add-to-group>
+        </action>
+        <action class="com.ifpb.tests.PluginPsiTests" description="Imprime testes do plugin relativos a PSI" text="Executar testes" icon="MyPluginIcons.ListCallsAction">
+            <add-to-group group-id="HelpMenu" anchor="last"></add-to-group>
         </action>
     </actions>
 </idea-plugin>

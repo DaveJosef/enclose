@@ -1,5 +1,9 @@
 package com.ifpb.enclose;
 
+import com.ifpb.calls.Call;
+import com.ifpb.calls.CallList;
+import com.ifpb.calls.CallMethodElement;
+import com.ifpb.visitor.MethodCallVisitor;
 import com.ifpb.visitor.MethodVisitor;
 import com.ifpb.visitor.PrintMethodVisitor;
 import com.intellij.codeInsight.intention.IntentionAction;
@@ -7,6 +11,8 @@ import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction;
 import com.intellij.codeInspection.util.IntentionFamilyName;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -15,7 +21,11 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Array;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -23,6 +33,7 @@ public class RefactorIntention extends PsiElementBaseIntentionAction implements 
     private CallList calllist = new CallList();
     private Call chosenCall = new Call();
     private int refactorCount = 0;
+
     @Override
     public void invoke(@NotNull Project project, Editor editor, @NotNull PsiElement element) throws IncorrectOperationException {
 
@@ -31,11 +42,12 @@ public class RefactorIntention extends PsiElementBaseIntentionAction implements 
         final PsiMethodCallExpressionUtils util = new PsiMethodCallExpressionUtils();
         final PsiShortNamesCache cache = PsiShortNamesCache.getInstance(project);
 
-        PsiClass classeCliente = cache.getClassesByName(chosenCall.clientClass(), GlobalSearchScope.allScope(project))[0];
+        String[] classeA = chosenCall.getClientClass().split("[.]");
+        PsiClass classeCliente = cache.getClassesByName(classeA[classeA.length - 1], GlobalSearchScope.allScope(project))[0];
         PsiMethodCallExpression chamada = PsiTreeUtil.getParentOfType(element, PsiMethodCallExpression.class);
 
         /* reduzir chamada até .add() */
-        while (!(chamada.getMethodExpression().getQualifierExpression() instanceof PsiReferenceExpression) && !chamada.getMethodExpression().getReferenceName().equals(chosenCall.collectionMethod())) {
+        while (!(chamada.getMethodExpression().getQualifierExpression() instanceof PsiReferenceExpression) && !chamada.getMethodExpression().getReferenceName().equals(chosenCall.getCollectionMethod().getMethodName())) {
             chamada = (PsiMethodCallExpression) chamada.getMethodExpression().getQualifierExpression();
         }
 
@@ -150,34 +162,93 @@ public class RefactorIntention extends PsiElementBaseIntentionAction implements 
 
     @Override
     public boolean isAvailable(@NotNull Project project, Editor editor, @NotNull PsiElement element) {
+
         if (element == null) {
             return false;
         }
+
         PsiMethodCallExpression chamada = PsiTreeUtil.getParentOfType(element, PsiMethodCallExpression.class);
-        PsiMethod containingMethod = PsiTreeUtil.getParentOfType(element, PsiMethod.class);
-        if (chamada == null || containingMethod == null) {
-            return false;
-        }
+        if (chamada == null) return false;
+
+        // --- COM VISITOR
+        MethodCallVisitor visitor = new MethodCallVisitor();
+        Path path = Paths.get(project.getBasePath());
+        VirtualFile pastaDoProjeto = VfsUtil.findFile(path, true);
+        PsiDirectory dir = PsiManager.getInstance(project).findDirectory(pastaDoProjeto);
+        if (dir != null) dir.accept(visitor);
+        this.calllist = new CallList(new MethodCallVisitor().getVisitResult());
+        System.out.println(visitor);
 
         /* Escolher uma call */
         for (Call c : calllist.calls()) {
-            if (chamada.getText().contains("." + c.collectionMethod() + "(")) {
+            if (chamada.getMethodExpression().getReferenceName().equals(c.getCollectionMethod().getMethodName())) {
                 this.chosenCall = c;
             }
         }
 
+        if (!shouldBeAvailable(chosenCall, chamada)) return false;
+
+        System.out.println("Chosen Call: " + chosenCall);
+
+        return true;
+    }
+
+    public boolean shouldBeAvailable(Call chosenCall, PsiMethodCallExpression element) {
         /* reduzir chamada até .add() */
-        while (!(chamada.getMethodExpression().getQualifierExpression() instanceof PsiReferenceExpression) && !chamada.getMethodExpression().getReferenceName().equals(chosenCall.collectionMethod())) {
+        /*
+        while (!(chamada.getMethodExpression().getQualifierExpression() instanceof PsiReferenceExpression) && !chamada.getMethodExpression().getReferenceName().equals(chosenCall.getCollectionMethod().getMethodName())) {
             chamada = (PsiMethodCallExpression) chamada.getMethodExpression().getQualifierExpression();
         }
+        */
+        /*
         if (!(chamada.getMethodExpression().getQualifierExpression() instanceof PsiMethodCallExpression)) {
             return false;
         }
+        /*
         if (chamada.getType() == null) {
             return false;
         }
-        if (!element.getText().equals(chosenCall.collectionMethod())) {
+        */
+        /*
+        if (!element.getText().equals(chosenCall.getCollectionMethod().getMethodName())) {
             return false;
+        }*/
+        if (chosenCall.getCollectionMethod() != null)
+            if (chosenCall.getCollectionMethod().getMethodName() != null)
+                if (!chosenCall.getCollectionMethod().getMethodName().equals(element.getMethodExpression().getReferenceName())) return false;
+
+        return true;
+    }
+
+    public boolean compare(PsiMethodCallExpression expression, Call call) {
+        if (!expression.getMethodExpression().getReferenceName().equals(call.getCollectionMethod().getMethodName())) return false;
+
+        PsiMethod containingMethod = PsiTreeUtil.getParentOfType(expression, PsiMethod.class);
+        if (containingMethod != null)
+            if (!compareMethods(containingMethod, call.getClientMethod())) return false;
+
+        return true;
+    }
+
+    public boolean compareMethods(PsiMethod method, CallMethodElement callMethodElement) {
+        if (!method.getName().equals(callMethodElement.getMethodName())) return false;
+
+        if (!method.getReturnType().getCanonicalText().equals(callMethodElement.getReturnType())) return false;
+
+        if (!compareParameterLists(method.getParameterList(), callMethodElement.getParams())) return false;
+
+        return true;
+    }
+
+    public boolean compareParameterLists(PsiParameterList paramList, List<String> paramsTypes) {
+        PsiParameter[] psiMethodParameters = paramList.getParameters();
+        if (psiMethodParameters != null) {
+            List<String> types = new ArrayList<>();
+            Arrays.asList(psiMethodParameters).forEach(psiParameter -> types.add(psiParameter.getType().getCanonicalText()));
+
+            if (!types.equals(paramsTypes)) return false;
+        } else {
+            if (paramsTypes != null) return false;
         }
 
         return true;
