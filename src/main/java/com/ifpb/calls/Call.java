@@ -1,6 +1,7 @@
 package com.ifpb.calls;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 public class Call {
     String targetClass = null;
@@ -90,6 +91,23 @@ public class Call {
 
     public void setCollectionMethod(CallMethodElement collectionMethod) {
         this.collectionMethod = collectionMethod;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Call call = (Call) o;
+        return Objects.equals(targetClass, call.targetClass) &&
+                Objects.equals(clientClass, call.clientClass) &&
+                Objects.equals(clientMethod, call.clientMethod) &&
+                Objects.equals(targetMethod, call.targetMethod) &&
+                Objects.equals(collectionMethod, call.collectionMethod);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(targetClass, clientClass, clientMethod, targetMethod, collectionMethod);
     }
 
     @Override

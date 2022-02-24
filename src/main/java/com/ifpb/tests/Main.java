@@ -6,5 +6,6 @@ public class Main {
     public static void main(String[] args) {
         PluginTests.testsCallsInstantiation();
         PluginTests.testsCallsListInstantiation();
+        PluginTests.testsCallListContains();
     }
 }

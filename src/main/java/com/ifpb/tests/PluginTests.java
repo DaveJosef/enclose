@@ -34,4 +34,21 @@ public class PluginTests {
         System.out.println(new CallList());
     }
 
+    public static void testsCallListContains() {
+
+        CallMethodElement el1 = new CallMethodElement("com.ifpb.C", Arrays.asList("com.ifpb.A", "com.ifpb.C"), "m");
+        CallMethodElement el2 = new CallMethodElement("com.ifpb.A", Arrays.asList("com.ifpb.C"), "m1");
+        CallMethodElement el3 = new CallMethodElement("boolean", Arrays.asList("com.ifpb.C"), "add");
+        Call call = new Call("com.igpb.A", el1, "com.ifpb.C", el2, el3);
+
+        CallList callList = new CallList(Arrays.asList(call, call));
+
+        System.out.println("Testando se a calllist contém a call:");
+        System.out.println(callList.contains(call));
+        System.out.println("CallList:");
+        System.out.println(callList);
+        System.out.println("Call:");
+        System.out.println(call);
+    }
+
 }

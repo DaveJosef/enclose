@@ -2,11 +2,27 @@ package com.ifpb.calls;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class CallMethodElement {
     private String returnType;
     private List<String> params;
     private String methodName;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CallMethodElement that = (CallMethodElement) o;
+        return Objects.equals(returnType, that.returnType) &&
+                Objects.equals(params, that.params) &&
+                Objects.equals(methodName, that.methodName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(returnType, params, methodName);
+    }
 
     public CallMethodElement(String returnType, List<String> params, String methodName) {
         this.returnType = returnType;

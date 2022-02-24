@@ -3,6 +3,7 @@ package com.ifpb.enclose;
 import com.ifpb.calls.Call;
 import com.ifpb.calls.CallList;
 import com.ifpb.calls.CallMethodElement;
+import com.ifpb.calls.PsiToCallConverter;
 import com.ifpb.visitor.MethodCallVisitor;
 import com.ifpb.visitor.MethodVisitor;
 import com.ifpb.visitor.PrintMethodVisitor;
@@ -176,80 +177,24 @@ public class RefactorIntention extends PsiElementBaseIntentionAction implements 
         VirtualFile pastaDoProjeto = VfsUtil.findFile(path, true);
         PsiDirectory dir = PsiManager.getInstance(project).findDirectory(pastaDoProjeto);
         if (dir != null) dir.accept(visitor);
-        this.calllist = new CallList(new MethodCallVisitor().getVisitResult());
-        System.out.println(visitor);
+        this.calllist = new CallList(visitor.getVisitResult());
 
-        /* Escolher uma call */
-        for (Call c : calllist.calls()) {
-            if (chamada.getMethodExpression().getReferenceName().equals(c.getCollectionMethod().getMethodName())) {
-                this.chosenCall = c;
-            }
+        if (!this.calllist.contains(PsiToCallConverter.getCallFrom(chamada))) {
+            return false;
         }
 
-        if (!shouldBeAvailable(chosenCall, chamada)) return false;
+        //if (!PsiToCallConverter.getCallFrom(chamada).isComplete()) return false;
 
+        this.chosenCall = PsiToCallConverter.getCallFrom(chamada);
         System.out.println("Chosen Call: " + chosenCall);
 
         return true;
     }
 
     public boolean shouldBeAvailable(Call chosenCall, PsiMethodCallExpression element) {
-        /* reduzir chamada até .add() */
-        /*
-        while (!(chamada.getMethodExpression().getQualifierExpression() instanceof PsiReferenceExpression) && !chamada.getMethodExpression().getReferenceName().equals(chosenCall.getCollectionMethod().getMethodName())) {
-            chamada = (PsiMethodCallExpression) chamada.getMethodExpression().getQualifierExpression();
-        }
-        */
-        /*
-        if (!(chamada.getMethodExpression().getQualifierExpression() instanceof PsiMethodCallExpression)) {
-            return false;
-        }
-        /*
-        if (chamada.getType() == null) {
-            return false;
-        }
-        */
-        /*
-        if (!element.getText().equals(chosenCall.getCollectionMethod().getMethodName())) {
-            return false;
-        }*/
         if (chosenCall.getCollectionMethod() != null)
             if (chosenCall.getCollectionMethod().getMethodName() != null)
                 if (!chosenCall.getCollectionMethod().getMethodName().equals(element.getMethodExpression().getReferenceName())) return false;
-
-        return true;
-    }
-
-    public boolean compare(PsiMethodCallExpression expression, Call call) {
-        if (!expression.getMethodExpression().getReferenceName().equals(call.getCollectionMethod().getMethodName())) return false;
-
-        PsiMethod containingMethod = PsiTreeUtil.getParentOfType(expression, PsiMethod.class);
-        if (containingMethod != null)
-            if (!compareMethods(containingMethod, call.getClientMethod())) return false;
-
-        return true;
-    }
-
-    public boolean compareMethods(PsiMethod method, CallMethodElement callMethodElement) {
-        if (!method.getName().equals(callMethodElement.getMethodName())) return false;
-
-        if (!method.getReturnType().getCanonicalText().equals(callMethodElement.getReturnType())) return false;
-
-        if (!compareParameterLists(method.getParameterList(), callMethodElement.getParams())) return false;
-
-        return true;
-    }
-
-    public boolean compareParameterLists(PsiParameterList paramList, List<String> paramsTypes) {
-        PsiParameter[] psiMethodParameters = paramList.getParameters();
-        if (psiMethodParameters != null) {
-            List<String> types = new ArrayList<>();
-            Arrays.asList(psiMethodParameters).forEach(psiParameter -> types.add(psiParameter.getType().getCanonicalText()));
-
-            if (!types.equals(paramsTypes)) return false;
-        } else {
-            if (paramsTypes != null) return false;
-        }
 
         return true;
     }
