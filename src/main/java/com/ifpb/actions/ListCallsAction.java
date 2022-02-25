@@ -1,13 +1,18 @@
 package com.ifpb.actions;
 
+import com.ifpb.calls.CallList;
 import com.ifpb.visitor.MethodCallVisitor;
 import com.ifpb.visitor.PrintMethodCallVisitor;
+import com.ifpb.visitor.filter.FilterClass;
+import com.ifpb.visitor.filter.FilterMethod;
+import com.ifpb.window.MyToolWindowFactory;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.WindowManager;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
 import icons.MyPluginIcons;
@@ -16,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.stream.Collectors;
 
 public class ListCallsAction extends AnAction {
     @Override
@@ -33,8 +39,16 @@ public class ListCallsAction extends AnAction {
         PsiDirectory dir = PsiManager.getInstance(projeto).findDirectory(pastaDoProjeto);
         if (dir != null) dir.accept(visitor);
 
+        CallList allCalls = new CallList(visitor.getVisitResult());
+        CallList jcfCalls = new CallList(allCalls.calls().stream().filter(new FilterClass("java.util.Collection").or(new FilterClass("java.util.Map"))).collect(Collectors.toList()));
+        CallList breakerOnes = new CallList(jcfCalls.calls().stream().filter(new FilterMethod()).collect(Collectors.toList()));
+
         //String m = "Olá, Mundo!";
-        String m = visitor.toString();
+        String m = allCalls.toString();
+        m += "\n\n";
+        m += jcfCalls;
+        m += "\n\n";
+        m += breakerOnes;
         //String m = processor.processToString();
         String t = "Chamadas de metodos encontradas em " + path + ":";
         Icon icon = MyPluginIcons.ListCallsAction; // Créditos da Imagem: https://www.onlinewebfonts.com/icon/448372

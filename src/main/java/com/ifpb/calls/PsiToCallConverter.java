@@ -20,7 +20,9 @@ public class PsiToCallConverter {
         PsiExpressionList refParamList = expression.getArgumentList();
         PsiType[] refParamListTypes = null;
         if (refParamList != null) refParamListTypes = refParamList.getExpressionTypes();
-        if (refParamListTypes != null) Arrays.stream(refParamListTypes).forEach(refParamListType -> params.add(refParamListType.getCanonicalText()));
+        if (refParamListTypes != null) Arrays.stream(refParamListTypes).forEach(refParamListType -> {
+            if (refParamListType != null) params.add(refParamListType.getCanonicalText());
+        });
 
         methodName = expression.getMethodExpression().getReferenceName();
 
