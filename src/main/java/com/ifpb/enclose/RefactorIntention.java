@@ -12,6 +12,8 @@ import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction;
 import com.intellij.codeInspection.util.IntentionFamilyName;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Iconable;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
@@ -159,6 +161,8 @@ public class RefactorIntention extends PsiElementBaseIntentionAction implements 
         List<PsiMethod> methodParser = new SmartParseMethod().visitor(parserVisitor).from(project, classeAlvo);
         parserVisitor.debug();
         System.out.println("\n");
+
+        Messages.showMessageDialog("Hello World!", "title", classeCliente.getIcon(Iconable.ICON_FLAG_VISIBILITY));
     }
 
     @Override
