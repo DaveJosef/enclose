@@ -1,18 +1,19 @@
-package com.ifpb.actions;
+package com.ifpb.enclose.controllers.actions;
 
-import com.ifpb.calls.CallList;
+import com.ifpb.enclose.controllers.calls.CallList;
+import com.ifpb.enclose.view.CallsListTree;
+import com.ifpb.enclose.view.CallsListTreeModel;
 import com.ifpb.visitor.MethodCallVisitor;
-import com.ifpb.visitor.PrintMethodCallVisitor;
 import com.ifpb.visitor.filter.FilterClass;
 import com.ifpb.visitor.filter.FilterMethod;
-import com.ifpb.window.MyToolWindowFactory;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.WindowManager;
+import com.intellij.openapi.wm.ToolWindowAnchor;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
 import icons.MyPluginIcons;
@@ -45,13 +46,15 @@ public class ListCallsAction extends AnAction {
 
         //String m = "Olá, Mundo!";
         String m = allCalls.toString();
-        m += "\n\n";
+        m += "\nJCF:\n";
         m += jcfCalls;
-        m += "\n\n";
+        m += "\nQUEBRAM O CONFINAMENTO:\n";
         m += breakerOnes;
         //String m = processor.processToString();
         String t = "Chamadas de metodos encontradas em " + path + ":";
         Icon icon = MyPluginIcons.ListCallsAction; // Créditos da Imagem: https://www.onlinewebfonts.com/icon/448372
+
+        ToolWindowManager.getInstance(projeto).getToolWindow("Calls List").getContentManager().getFactory().createContent(new CallsListTree(new CallsListTreeModel(dir)), "Olá!", false);
 
         Messages.showMessageDialog(m, t, icon);
     }

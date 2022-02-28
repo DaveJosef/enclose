@@ -1,14 +1,15 @@
-package com.ifpb.view;
+package com.ifpb.enclose.view;
 
-import javax.swing.*;
-import javax.swing.tree.TreeModel;
-import javax.swing.tree.TreeSelectionModel;
+import com.intellij.ui.treeStructure.Tree;
 
-public class CallsListTree extends JTree {
+import javax.swing.tree.*;
+
+public class CallsListTree extends Tree {
     public CallsListTree(TreeModel newModel) {
         super(newModel);
         setCellRenderer(new CallsListTreeCellRenderer());
         getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         setExpandsSelectedPaths(true);
     }
+
 }

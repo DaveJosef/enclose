@@ -1,6 +1,6 @@
 package com.ifpb.visitor.filter;
 
-import com.ifpb.calls.Call;
+import com.ifpb.enclose.controllers.calls.Call;
 
 import java.util.function.Predicate;
 

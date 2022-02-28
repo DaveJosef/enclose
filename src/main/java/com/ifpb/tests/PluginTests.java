@@ -1,17 +1,9 @@
 package com.ifpb.tests;
 
-import com.ifpb.calls.Call;
-import com.ifpb.calls.CallList;
-import com.ifpb.calls.CallMethodElement;
-import com.ifpb.enclose.RefactorIntention;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiElementFactory;
-import com.intellij.psi.PsiMethodCallExpression;
+import com.ifpb.enclose.controllers.calls.Call;
+import com.ifpb.enclose.controllers.calls.CallList;
+import com.ifpb.enclose.controllers.calls.CallMethodElement;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 public class PluginTests {

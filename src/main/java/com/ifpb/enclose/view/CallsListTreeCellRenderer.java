@@ -1,10 +1,8 @@
-package com.ifpb.view;
+package com.ifpb.enclose.view;
 
 import com.intellij.openapi.util.Iconable;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiElementVisitor;
-import com.intellij.psi.PsiFile;
+import com.intellij.psi.*;
+import icons.MyPluginIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -21,20 +19,39 @@ public class CallsListTreeCellRenderer extends DefaultTreeCellRenderer {
         return this;
     }
 
-    private class ElementVisitor extends PsiElementVisitor {
+    private class ElementVisitor extends JavaRecursiveElementVisitor {
 
         public ElementVisitor() {
         }
 
+        @Override
         public void visitDirectory(@NotNull PsiDirectory dir) {
-            setIcon(dir.getIcon(Iconable.ICON_FLAG_READ_STATUS));
+            setIcon(dir.getIcon(Iconable.ICON_FLAG_VISIBILITY));
             setText(dir.getName());
         }
 
         @Override
         public void visitFile(@NotNull PsiFile file) {
-            setIcon(file.getIcon(Iconable.ICON_FLAG_READ_STATUS));
+            setIcon(file.getIcon(Iconable.ICON_FLAG_VISIBILITY));
             setText(file.getName());
+        }
+
+        @Override
+        public void visitMethod(PsiMethod method) {
+            setIcon(method.getIcon(Iconable.ICON_FLAG_VISIBILITY));
+            setText(method.getName());
+        }
+
+        @Override
+        public void visitClass(PsiClass aClass) {
+            setIcon(aClass.getIcon(Iconable.ICON_FLAG_VISIBILITY));
+            setText(aClass.getName());
+        }
+
+        @Override
+        public void visitMethodCallExpression(PsiMethodCallExpression expression) {
+            setIcon(MyPluginIcons.ListCallsAction);
+            setText(expression.getText());
         }
     }
 }

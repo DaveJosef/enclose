@@ -1,4 +1,4 @@
-package com.ifpb.calls;
+package com.ifpb.enclose.controllers.calls;
 
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;

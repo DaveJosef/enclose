@@ -1,9 +1,8 @@
 package com.ifpb.enclose;
 
-import com.ifpb.calls.Call;
-import com.ifpb.calls.CallList;
-import com.ifpb.calls.CallMethodElement;
-import com.ifpb.calls.PsiToCallConverter;
+import com.ifpb.enclose.controllers.calls.Call;
+import com.ifpb.enclose.controllers.calls.CallList;
+import com.ifpb.enclose.controllers.calls.PsiToCallConverter;
 import com.ifpb.visitor.MethodCallVisitor;
 import com.ifpb.visitor.MethodVisitor;
 import com.ifpb.visitor.PrintMethodVisitor;
@@ -24,11 +23,9 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Array;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 
@@ -58,6 +55,7 @@ public class RefactorIntention extends PsiElementBaseIntentionAction implements 
         List<PsiExpressionList> listOfArguments = new ArrayList<>();
         PsiMethodCallExpression p = chamada;
             listOfArguments.add(p.getArgumentList());
+            if (!(p.getMethodExpression().getQualifierExpression() instanceof PsiMethodCallExpression)) return;
             p = (PsiMethodCallExpression) p.getMethodExpression().getQualifierExpression();
         listOfArguments.add(p.getArgumentList());
 

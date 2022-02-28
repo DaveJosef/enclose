@@ -1,7 +1,7 @@
 package com.ifpb.visitor;
 
-import com.ifpb.calls.Call;
-import com.ifpb.calls.PsiToCallConverter;
+import com.ifpb.enclose.controllers.calls.Call;
+import com.ifpb.enclose.controllers.calls.PsiToCallConverter;
 import com.intellij.psi.JavaRecursiveElementVisitor;
 import com.intellij.psi.PsiMethodCallExpression;
 

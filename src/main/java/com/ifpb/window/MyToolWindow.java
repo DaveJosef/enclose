@@ -1,34 +1,30 @@
 package com.ifpb.window;
 
-import com.ifpb.actions.ListCallsAction;
-import com.ifpb.calls.CallList;
-//import com.ifpb.view.CallsListPanel;
-import com.intellij.openapi.ui.Messages;
+//import com.ifpb.enclose.view.CallsListPanel;
+import com.ifpb.enclose.view.CallsListPanel;
+import com.intellij.openapi.project.Project;
+        import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.treeStructure.Tree;
-import org.jdesktop.swingx.HorizontalLayout;
 
-import javax.swing.*;
-import java.awt.*;
+        import javax.swing.*;
 
 public class MyToolWindow {
-    private Tree tree1;
     private JPanel panel1;
     private JButton clickMeButton;
+    private Project project;
 
-    public MyToolWindow(ToolWindow toolWindow) {
+    public MyToolWindow(ToolWindow toolWindow, Project project) {
+        this.project = project;
         clickMeButton.addActionListener((e) -> {
-            Messages.showInfoMessage("Hello, World!", "Hello World Message!");
+            doSomething();
         });
 
         this.doSomething();
     }
 
     private void doSomething() {
-        System.out.println("Hello, World!");
-        JPanel panel = new JPanel(new HorizontalLayout(0));
-
+        Messages.showInfoMessage("Hello, World!", "Hello World Message!");
+        panel1 = new CallsListPanel(project);
     }
 
     public JPanel getContent() {
