@@ -20,11 +20,15 @@ import icons.MyPluginIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Collectors;
 
 public class ListCallsAction extends AnAction {
+
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         Project projeto = e.getProject();
@@ -45,16 +49,17 @@ public class ListCallsAction extends AnAction {
         CallList breakerOnes = new CallList(jcfCalls.calls().stream().filter(new FilterMethod()).collect(Collectors.toList()));
 
         //String m = "Olá, Mundo!";
-        String m = allCalls.toString();
-        m += "\nJCF:\n";
+        String m = "\nAll calls: ("+allCalls.calls().size()+")\n";
+        m += allCalls.toString();
+        m += "\nJCF: ("+jcfCalls.calls().size()+")\n";
         m += jcfCalls;
-        m += "\nQUEBRAM O CONFINAMENTO:\n";
+        m += "\nQUEBRAM O CONFINAMENTO: ("+breakerOnes.calls().size()+")\n";
         m += breakerOnes;
         //String m = processor.processToString();
         String t = "Chamadas de metodos encontradas em " + path + ":";
         Icon icon = MyPluginIcons.ListCallsAction; // Créditos da Imagem: https://www.onlinewebfonts.com/icon/448372
 
-        ToolWindowManager.getInstance(projeto).getToolWindow("Calls List").getContentManager().getFactory().createContent(new CallsListTree(new CallsListTreeModel(dir)), "Olá!", false);
+        //ToolWindowManager.getInstance(projeto).getToolWindow("Calls List").getContentManager().getFactory().createContent(new CallsListTree(new CallsListTreeModel(dir)), "Olá!", false);
 
         Messages.showMessageDialog(m, t, icon);
     }

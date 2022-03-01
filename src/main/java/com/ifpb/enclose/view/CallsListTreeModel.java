@@ -3,7 +3,6 @@ package com.ifpb.enclose.view;
 import com.ifpb.enclose.controllers.calls.Call;
 import com.ifpb.enclose.controllers.calls.PsiToCallConverter;
 import com.intellij.psi.*;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
@@ -125,5 +124,6 @@ public class CallsListTreeModel implements TreeModel {
         public List<PsiElement> getElements() {
             return list;
         }
+
     }
 }
