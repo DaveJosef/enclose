@@ -9,6 +9,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 
+// Retirado de https://github.com/cmf/psiviewer/blob/master/src/idea/plugin/psiviewer/util/PluginPsiUtil.java
 public class PluginPsiUtil {
     public static VirtualFile getVirtualFile(PsiElement element) {
         if (element == null || !element.isValid() || element.getContainingFile() == null)

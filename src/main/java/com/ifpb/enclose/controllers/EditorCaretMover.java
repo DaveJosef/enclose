@@ -9,6 +9,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 
+// Retirado de https://github.com/cmf/psiviewer/blob/master/src/idea/plugin/psiviewer/view/EditorCaretMover.java
 public class EditorCaretMover {
     private final Project project;
     private boolean _shouldMoveCaret = true;

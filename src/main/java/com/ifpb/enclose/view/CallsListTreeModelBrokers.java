@@ -1,89 +1,29 @@
 package com.ifpb.enclose.view;
 
+import com.ifpb.enclose.controllers.calls.Call;
+import com.ifpb.enclose.controllers.calls.PsiToCallConverter;
+import com.ifpb.enclose.controllers.constants.MyPluginConstants;
 import com.ifpb.enclose.controllers.project.CallsListProjectService;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.ifpb.visitor.filter.FilterClass;
+import com.ifpb.visitor.filter.FilterMethod;
 import com.intellij.psi.*;
 
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class CallsListTreeModel implements TreeModel {
-    protected CallsListProjectService myCallsListProjectService;
+public class CallsListTreeModelBrokers extends CallsListTreeModel implements TreeModel {
     private PsiElement rootElement;
 
-    public CallsListTreeModel(PsiElement rootElement) {
-        this.rootElement = rootElement;
-    }
-
-    public CallsListTreeModel(CallsListProjectService component) {
-        myCallsListProjectService = component;
-
-    }
-
-    public PsiElement getRootElement() {
-        return rootElement;
-    }
-
-    public void setRootElement(PsiElement rootElement) {
-        this.rootElement = rootElement;
+    public CallsListTreeModelBrokers(CallsListProjectService component) {
+        super(component);
     }
 
     @Override
-    public Object getRoot() {
-        return rootElement;
-    }
-
-    @Override
-    public Object getChild(Object o, int i) {
-        PsiElement psi = (PsiElement) o;
-        List<PsiElement> children = getFilteredChildren(psi);
-        return children.get(i);
-    }
-
-    @Override
-    public int getChildCount(Object o) {
-        PsiElement psi = (PsiElement) o;
-        return getFilteredChildren(psi).size();
-    }
-
-    @Override
-    public boolean isLeaf(Object o) {
-        PsiElement psi = (PsiElement) o;
-        return getFilteredChildren(psi).size() == 0;
-    }
-
-    @Override
-    public void valueForPathChanged(TreePath treePath, Object o) {
-
-    }
-
-    @Override
-    public int getIndexOfChild(Object o, Object o1) {
-        PsiElement psiParent = (PsiElement) o;
-        List<PsiElement> psiChildren = getFilteredChildren(psiParent);
-        return psiChildren.indexOf(o1);
-    }
-
-    @Override
-    public void addTreeModelListener(TreeModelListener treeModelListener) {
-
-    }
-
-    @Override
-    public void removeTreeModelListener(TreeModelListener treeModelListener) {
-
-    }
-
-    public boolean isValid(PsiElement e) {
-        return e != null && (e instanceof PsiDirectory || e instanceof PsiClass || e instanceof PsiMethod || e instanceof PsiFile);
-    }
-
     public List<PsiElement> getFilteredChildren(PsiElement psi) {
         List<PsiElement> filteredChildren = new ArrayList<>();
 
@@ -133,7 +73,16 @@ public class CallsListTreeModel implements TreeModel {
         @Override
         public void visitMethodCallExpression(PsiMethodCallExpression expression) {
             if (expression instanceof PsiReferenceExpression) return;
-            list.add(expression);
+
+            if (!myCallsListProjectService.isFilterBreakerOnes()) {
+                list.add(expression);
+                return;
+            }
+
+            Call c = PsiToCallConverter.getCallFrom(expression);
+            List<Call> callFiltered = Arrays.asList(c).stream().filter(new FilterClass(MyPluginConstants.COLLECTION_CLASS_NAME).or(new FilterClass(MyPluginConstants.MAP_CLASS_NAME)).and(new FilterMethod())).collect(Collectors.toList());
+            if (callFiltered.size() > 0)
+                list.add(expression);
         }
 
         public List<PsiElement> getElements() {

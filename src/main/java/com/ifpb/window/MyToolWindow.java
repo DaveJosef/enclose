@@ -24,7 +24,7 @@ public class MyToolWindow {
 
     private void doSomething() {
         Messages.showInfoMessage("Hello, World!", "Hello World Message!");
-        panel1 = new CallsListPanel(project);
+        //panel1 = new CallsListPanel(project);
     }
 
     public JPanel getContent() {

@@ -3,6 +3,7 @@ package com.ifpb.enclose.view;
 
 import com.ifpb.enclose.controllers.EditorCaretMover;
 import com.ifpb.enclose.controllers.calls.CallList;
+import com.ifpb.enclose.controllers.project.CallsListProjectService;
 import com.ifpb.visitor.MethodCallVisitor;
 import com.intellij.ide.plugins.newui.VerticalLayout;
 import com.intellij.openapi.diagnostic.Logger;
@@ -12,7 +13,9 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.psi.*;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.HorizontalLayout;
+import com.intellij.ui.treeStructure.Tree;
 import com.intellij.uiDesigner.compiler.ScrollPaneLayoutCodeGenerator;
 
 import javax.swing.*;
@@ -30,9 +33,9 @@ import java.util.LinkedList;
 
 public class CallsListPanel extends JPanel {
     private static final Logger LOG = Logger.getInstance(CallsListPanel.class);
-
+    private final CallsListProjectService _projectComponent;
     private String _actionTitle;
-    private CallsListTree _tree;
+    private Tree _tree;
     private CallsListTreeModel _model;
     private PsiElement _rootElement;
     private PsiElement _selectedElement;
@@ -40,16 +43,22 @@ public class CallsListPanel extends JPanel {
     private ToolWindow _toolwindow;
     private final EditorCaretMover _caretMover;
 
-    public CallsListPanel(Project project) {
-        _project = project;
-        _caretMover = new EditorCaretMover(project);
-        Path path = Paths.get(project.getBasePath());
-        VirtualFile pastaDoProjeto = VfsUtil.findFile(path, true);
-        PsiDirectory dir = PsiManager.getInstance(project).findDirectory(pastaDoProjeto);
-        //_model = new CallsListTreeModel(JavaPsiFacade.getElementFactory(project).createMethodFromText("public void m() {return this;}", null));
-        _model = new CallsListTreeModel(dir);
+    public CallsListPanel(CallsListProjectService component) {
+        _projectComponent = component;
+        _project = component.getMyProject();
+        _caretMover = new EditorCaretMover(component.getMyProject());
+        _model = new CallsListTreeModelBrokers(component);
 
         buildGUI();
+    }
+
+    public void loadProjectDirectory() {
+
+        Path path = Paths.get(_projectComponent.getMyProject().getBasePath());
+        VirtualFile pastaDoProjeto = VfsUtil.findFile(path, true);
+        PsiDirectory dir = PsiManager.getInstance(_projectComponent.getMyProject()).findDirectory(pastaDoProjeto);
+        //_model = new CallsListTreeModelBrokers(JavaPsiFacade.getElementFactory(_projectComponent.getMyProject()).createMethodFromText("public void m() {return this;}", null));
+        setRootElement(dir);
     }
 
     private void buildGUI() {
@@ -76,7 +85,7 @@ public class CallsListPanel extends JPanel {
         });
 
         //add(_list);
-        add(_tree);
+        add(new JBScrollPane(_tree));
     }
 
     private void moveEditorCaret() {
@@ -106,6 +115,14 @@ public class CallsListPanel extends JPanel {
         return treePath;
     }
 
+    private void refreshRootElement() {
+        selectRootElement(getRootElement());
+    }
+
+    private void selectRootElement(PsiElement element) {
+        setRootElement(element);
+    }
+
     private void setRootElement(PsiElement rootElement) {
         _rootElement = rootElement;
         showRootElement();
@@ -120,6 +137,10 @@ public class CallsListPanel extends JPanel {
         return _toolwindow;
     }
 
+    public PsiElement getRootElement() {
+        return _rootElement;
+    }
+
     private void resetTree() {
         Enumeration expandedDescendants = null;
         TreePath treePath = null;
@@ -128,7 +149,8 @@ public class CallsListPanel extends JPanel {
             treePath = _tree.getSelectionModel().getSelectionPath();
         }
 
-        _model = new CallsListTreeModel(_rootElement);
+        _model = new CallsListTreeModelBrokers(_projectComponent);
+        _model.setRootElement(getRootElement());
         _tree.setModel(_model);
         if (expandedDescendants != null) {
             while (expandedDescendants.hasMoreElements()) {
@@ -142,5 +164,13 @@ public class CallsListPanel extends JPanel {
 
     public static void debug(String m) {
         if (LOG.isDebugEnabled()) LOG.debug(m);
+    }
+
+    public void applyBreakerFilter() {
+        showRootElement();
+    }
+
+    public void setToolWindow(ToolWindow toolWindow) {
+        _toolwindow = toolWindow;
     }
 }

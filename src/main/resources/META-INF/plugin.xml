@@ -23,6 +23,7 @@
             <category>Refactor Intentions</category>
         </intentionAction>
         <toolWindow factoryClass="com.ifpb.window.MyToolWindowFactory" id="Calls List" secondary="true" icon="AllIcons.General.Modified" anchor="bottom" />
+        <projectService serviceImplementation="com.ifpb.enclose.controllers.project.CallsListProjectService" />
     </extensions>
 
     <actions>

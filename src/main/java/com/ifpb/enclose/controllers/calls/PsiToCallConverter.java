@@ -1,5 +1,6 @@
 package com.ifpb.enclose.controllers.calls;
 
+import com.intellij.openapi.project.DumbUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 
@@ -118,4 +119,5 @@ public class PsiToCallConverter {
 
         return currentCall;
     }
+
 }
