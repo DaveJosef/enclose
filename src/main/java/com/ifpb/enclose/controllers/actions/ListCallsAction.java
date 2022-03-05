@@ -57,30 +57,7 @@ public class ListCallsAction extends AnAction {
         m += breakerOnes;
         //String m = processor.processToString();
         String t = "Chamadas de metodos encontradas em " + path + ":";
-        Icon icon = MyPluginIcons.ListCallsAction; // Créditos da Imagem: https://www.onlinewebfonts.com/icon/448372
-
-        //ToolWindowManager.getInstance(projeto).getToolWindow("Calls List").getContentManager().getFactory().createContent(new CallsListTree(new CallsListTreeModel(dir)), "Olá!", false);
-//
-//        try {
-//            File myObj = new File("filename.txt");
-//            if (myObj.createNewFile()) {
-//                System.out.println("File created: " + myObj.getName());
-//            } else {
-//                System.out.println("File already exists.");
-//            }
-//        } catch (IOException exc) {
-//            System.out.println("An error occurred.");
-//            exc.printStackTrace();
-//        }
-        try {
-            FileWriter myWriter = new FileWriter("C:\\filename.txt");
-            myWriter.write(m);
-            myWriter.close();
-            System.out.println("Successfully wrote to the file.");
-        } catch (IOException exc) {
-            System.out.println("An error occurred.");
-            exc.printStackTrace();
-        }
+        Icon icon = MyPluginIcons.ListCallsAction;
 
         Messages.showMessageDialog(m, t, icon);
     }

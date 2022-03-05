@@ -100,7 +100,7 @@ public class CallsListProjectService implements PersistentStateComponent<CallsLi
         DefaultActionGroup actionGroup = new DefaultActionGroup(ID_ACTION_GROUP, false);
         actionGroup.add(new PropertyToggleAction("Filter Breaker Ones",
                 "Select only the calls those break confinement.",
-                MyPluginIcons.ListCallsAction,
+                MyPluginIcons.ToggleBreakerOnes,
                 this::isFilterBreakerOnes,
                 this::setFilterBreakerOnes));
 

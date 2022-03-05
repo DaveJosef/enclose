@@ -96,10 +96,7 @@ public class CallsListTreeModel implements TreeModel {
         for (PsiElement e = psi.getFirstChild(); e != null; e = e.getNextSibling()) {
             if (isValid(e)) filteredChildren.add(e);
         }
-/*
-        VisitorFilter elFilter = new VisitorFilter(psi.getFirstChild());
-        filteredChildren = elFilter.getElements();
-*/
+
         return filteredChildren;
     }
 
