@@ -1,6 +1,7 @@
 package com.ifpb.enclose.controllers.project;
 
 import com.ifpb.enclose.controllers.actions.PropertyToggleAction;
+import com.ifpb.enclose.controllers.actions.RefactorCallAction;
 import com.ifpb.enclose.view.CallsListPanel;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.plugins.newui.HorizontalLayout;
@@ -8,6 +9,7 @@ import com.intellij.lang.Language;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
@@ -17,6 +19,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.psi.PsiElement;
 import icons.MyPluginIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,6 +33,7 @@ import static com.ifpb.enclose.controllers.constants.MyPluginConstants.*;
 
 @State(name = "CallListProjectService", storages = @Storage(StoragePathMacros.WORKSPACE_FILE))
 public class CallsListProjectService implements PersistentStateComponent<CallsListProjectService.State>, Disposable {
+
     @Override
     public void dispose() {
 
@@ -54,6 +58,7 @@ public class CallsListProjectService implements PersistentStateComponent<CallsLi
     private CallsListPanel myListerPanel;
     //private EditorListener myEditorListener;
     private final Project myProject;
+    private RefactorCallAction myRefactorCallAction;
 
     public CallsListProjectService(Project myProject) {
         this.myProject = myProject;
@@ -86,6 +91,10 @@ public class CallsListProjectService implements PersistentStateComponent<CallsLi
         getListerPanel().applyBreakerFilter();
     }
 
+    public void setRefactoringElement(PsiElement element) {
+        myRefactorCallAction.setRefactoringElement(element);
+    }
+
     private CallsListPanel getListerPanel() {
         return myListerPanel;
     }
@@ -103,6 +112,14 @@ public class CallsListProjectService implements PersistentStateComponent<CallsLi
                 MyPluginIcons.ToggleBreakerOnes,
                 this::isFilterBreakerOnes,
                 this::setFilterBreakerOnes));
+
+        myRefactorCallAction = new RefactorCallAction("Fix Selected Method Call",
+                "Apply Enclose Refactoring to Selected Method Call Expression.",
+                MyPluginIcons.ChangeBreakerOnes,
+                myProject,
+                myListerPanel.getSelectedElement(),
+                myListerPanel);
+        actionGroup.add(myRefactorCallAction);
 
         ActionToolbar toolBar = actionManager.createActionToolbar(ID_ACTION_TOOLBAR, actionGroup, false);
 

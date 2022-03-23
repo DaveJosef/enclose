@@ -1,6 +1,7 @@
 package com.ifpb.experiment.actions;
 
 import com.ifpb.enclose.controllers.calls.CallList;
+import com.ifpb.enclose.controllers.constants.MyPluginConstants;
 import com.ifpb.experiment.Directories;
 import com.ifpb.experiment.SetupDirectories;
 import com.ifpb.visitor.MethodCallVisitor;
@@ -70,7 +71,7 @@ public class DefaultDataExtractor implements DataExtractor {
         if (dir != null) dir.accept(visitor);
 
         CallList allCalls = new CallList(visitor.getVisitResult());
-        CallList jcfCalls = new CallList(allCalls.calls().stream().filter(new FilterClass("java.util.Collection").or(new FilterClass("java.util.Map"))).collect(Collectors.toList()));
+        CallList jcfCalls = new CallList(allCalls.calls().stream().filter(new FilterClass(MyPluginConstants.COLLECTION_CLASS_NAME).or(new FilterClass(MyPluginConstants.MAP_CLASS_NAME))).collect(Collectors.toList()));
         CallList breakerOnes = new CallList(jcfCalls.calls().stream().filter(new FilterMethod()).collect(Collectors.toList()));
 
         //String m = "Olá, Mundo!";

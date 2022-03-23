@@ -94,10 +94,11 @@ public class CallsListPanel extends JPanel {
 
     private void setSelectedElement(PsiElement element) {
         _selectedElement = element;
+        _projectComponent.setRefactoringElement(getSelectedElement());
         moveEditorCaret();
     }
 
-    private PsiElement getSelectedElement() {
+    public PsiElement getSelectedElement() {
         return _selectedElement;
     }
 
