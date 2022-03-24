@@ -227,7 +227,7 @@ public class RefactorCallAction extends AnAction {
         parserVisitor.debug();
         System.out.println("\n");*/
 
-        Messages.showMessageDialog("Novo metodo criado em A.java!", "Método criado", classeAlvo.getIcon(Iconable.ICON_FLAG_VISIBILITY));
+        //Messages.showMessageDialog("Novo metodo criado em A.java!", "Método criado", classeAlvo.getIcon(Iconable.ICON_FLAG_VISIBILITY));
     }
 
     public void setRefactoringElement(PsiElement element) {
