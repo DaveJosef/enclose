@@ -1,6 +1,7 @@
 package com.ifpb.enclose.controllers.project;
 
 import com.ifpb.enclose.controllers.actions.PropertyToggleAction;
+import com.ifpb.enclose.controllers.actions.RefactorAllCallsAction;
 import com.ifpb.enclose.controllers.actions.RefactorCallAction;
 import com.ifpb.enclose.view.CallsListPanel;
 import com.intellij.icons.AllIcons;
@@ -59,6 +60,7 @@ public class CallsListProjectService implements PersistentStateComponent<CallsLi
     //private EditorListener myEditorListener;
     private final Project myProject;
     private RefactorCallAction myRefactorCallAction;
+    private RefactorAllCallsAction myRefactorAllCallsAction;
 
     public CallsListProjectService(Project myProject) {
         this.myProject = myProject;
@@ -120,6 +122,14 @@ public class CallsListProjectService implements PersistentStateComponent<CallsLi
                 myListerPanel.getSelectedElement(),
                 myListerPanel);
         actionGroup.add(myRefactorCallAction);
+
+        myRefactorAllCallsAction = new RefactorAllCallsAction("Fix All Method Calls",
+                "Apply Enclose Refactoring to All Method Call Expressions.",
+                MyPluginIcons.ChangeBreakerOnesStar,
+                myProject,
+                myListerPanel.getSelectedElement(),
+                myListerPanel);
+        actionGroup.add(myRefactorAllCallsAction);
 
         ActionToolbar toolBar = actionManager.createActionToolbar(ID_ACTION_TOOLBAR, actionGroup, false);
 

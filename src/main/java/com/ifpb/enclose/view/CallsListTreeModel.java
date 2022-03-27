@@ -80,6 +80,18 @@ public class CallsListTreeModel implements TreeModel {
 
     }
 
+    public boolean isValidByNode(PsiElement psi) {
+        if (isLeaf(psi)) {
+            if (!(psi instanceof PsiMethodCallExpression)) {
+                return false;
+            }
+        } else {
+            return isValidByNode(psi.getFirstChild());
+        }
+
+        return true;
+    }
+
     public boolean isValid(PsiElement e) {
         return e != null && (e instanceof PsiDirectory || e instanceof PsiClass || e instanceof PsiMethod || e instanceof PsiFile);
     }

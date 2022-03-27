@@ -26,22 +26,27 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.lang.reflect.Array;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.LinkedList;
+import java.util.List;
 
 public class CallsListPanel extends JPanel {
     private static final Logger LOG = Logger.getInstance(CallsListPanel.class);
     private final CallsListProjectService _projectComponent;
     private String _actionTitle;
     private Tree _tree;
-    private CallsListTreeModel _model;
+    private CallsListTreeModelBrokers _model;
     private PsiElement _rootElement;
     private PsiElement _selectedElement;
     private final Project _project;
     private ToolWindow _toolwindow;
     private final EditorCaretMover _caretMover;
+    private List<PsiElement> callNodes = new ArrayList<>();
 
     public CallsListPanel(CallsListProjectService component) {
         _projectComponent = component;
@@ -173,5 +178,30 @@ public class CallsListPanel extends JPanel {
 
     public void setToolWindow(ToolWindow toolWindow) {
         _toolwindow = toolWindow;
+    }
+
+    public List<PsiElement> getCallNodes() {
+        callNodes = new ArrayList<>();
+        collectAllCallNodes(_model.getRootElement());
+        System.out.println("Fim!");
+        return callNodes;
+    }
+
+    public void collectAllCallNodes(PsiElement node) {
+
+        for (PsiElement psi : _model.getFilteredChildren(node)) {
+            if (_model.isLeaf(psi) && psi instanceof PsiMethodCallExpression) {
+                callNodes.add(psi);
+            } else {
+                collectAllCallNodes(psi);
+            }
+        }
+    }
+
+    private void printSelection(TreePath[] paths) {
+        System.out.println("Paths:\n");
+        for (TreePath path : paths) {
+            System.out.println(path.getLastPathComponent() + "\n");
+        }
     }
 }
