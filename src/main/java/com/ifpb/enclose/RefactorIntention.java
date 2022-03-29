@@ -4,6 +4,8 @@ import com.ifpb.enclose.controllers.EditorCaretMover;
 import com.ifpb.enclose.controllers.calls.Call;
 import com.ifpb.enclose.controllers.calls.CallList;
 import com.ifpb.enclose.controllers.calls.PsiToCallConverter;
+import com.ifpb.enclose.refactor.Refactor;
+import com.ifpb.enclose.refactor.RefactorImplementation;
 import com.ifpb.visitor.MethodCallVisitor;
 import com.ifpb.visitor.MethodVisitor;
 import com.ifpb.visitor.PrintMethodVisitor;
@@ -39,13 +41,13 @@ public class RefactorIntention extends PsiElementBaseIntentionAction implements 
     public void invoke(@NotNull Project project, Editor editor, @NotNull PsiElement element) throws IncorrectOperationException {
 
         final PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
-        final CodeStyleManager codeStylist = CodeStyleManager.getInstance(project);
-        final PsiMethodCallExpressionUtils util = new PsiMethodCallExpressionUtils();
         final PsiShortNamesCache cache = PsiShortNamesCache.getInstance(project);
 
-        String[] classeA = chosenCall.getClientClass().split("[.]");
-        PsiClass classeCliente = cache.getClassesByName(classeA[classeA.length - 1], GlobalSearchScope.allScope(project))[0];
         PsiMethodCallExpression chamada = PsiTreeUtil.getParentOfType(element, PsiMethodCallExpression.class);
+
+        // Test
+        new RefactorImplementation(chamada, chosenCall, project)
+                .debug();
 
         /* reduzir chamada até .add() */
         while (!(chamada.getMethodExpression().getQualifierExpression() instanceof PsiReferenceExpression) && !chamada.getMethodExpression().getReferenceName().equals(chosenCall.getCollectionMethod().getMethodName())) {
@@ -162,6 +164,7 @@ public class RefactorIntention extends PsiElementBaseIntentionAction implements 
         System.out.println("\n");*/
 
         //Messages.showMessageDialog("Novo metodo criado em A.java!", "Método criado", classeAlvo.getIcon(Iconable.ICON_FLAG_VISIBILITY));
+
     }
 
     @Override
