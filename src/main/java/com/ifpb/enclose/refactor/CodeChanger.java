@@ -7,13 +7,12 @@ import com.intellij.psi.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public interface Refactor {
-    PsiElement psiExpression = null;
-    Call chosenCall = null;
-    Project project = null;
-    PsiElementFactory factory = null;
+public interface CodeChanger {
 
     void debug();
-
-    void run();
+    void applyChanges();
+    boolean isAvailable();
+    void setExpression(PsiElement element);
+    void setProject(Project project);
+    void setChosenCall(Call call);
 }

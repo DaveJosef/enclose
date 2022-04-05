@@ -1,21 +1,34 @@
 package com.ifpb.enclose.refactor;
 
 import com.ifpb.enclose.controllers.calls.Call;
+import com.ifpb.enclose.controllers.calls.CallList;
+import com.ifpb.enclose.controllers.calls.PsiToCallConverter;
+import com.ifpb.visitor.MethodCallVisitor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiShortNamesCache;
+import com.intellij.psi.util.PsiTreeUtil;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RefactorImplementation implements Refactor {
+public class CodeChangerImplementation implements CodeChanger {
     private PsiElement psiExpression;
     private Call chosenCall;
     private Project project;
-    private final PsiElementFactory factory;
-    private final PsiShortNamesCache cache;
+    private PsiElementFactory factory;
+    private PsiShortNamesCache cache;
+    private int changesCount = 0;
 
-    public RefactorImplementation(PsiElement psiExpression, Call chosenCall, Project project) {
+    public CodeChangerImplementation() {
+    }
+
+    public CodeChangerImplementation(PsiElement psiExpression, Call chosenCall, Project project) {
         this.psiExpression = psiExpression;
         this.chosenCall = chosenCall;
         this.project = project;
@@ -23,42 +36,79 @@ public class RefactorImplementation implements Refactor {
         this.cache = PsiShortNamesCache.getInstance(project);
     }
 
+    @Override
     public void debug() {
         System.out.println("\n(Printing my methods:)\n");
 
-        printPsi(psiExpression);
+        printPsi(psiExpression); // getA().getElements(this).set(0, new A())
 
         PsiElement createdMethod = createMethod();
 
-        printPsi(createdMethod);
+        printPsi(createdMethod); // public com.ifpb.A newMethod() {}
 
-        printPsi(createParam(0));
+        printPsi(createParam(0)); // param0
 
         List<PsiElement> paramList = createParamList();
         printPsiList(paramList);
+//
+//        (Printing the following psi list:)
+//        int param0
+//
+//        com.ifpb.A param1
 
         List<PsiElement> recursiveParamList = new ArrayList<>();
         printPsiList(createParamList(psiExpression, chosenCall.getTargetMethod().getMethodName(), recursiveParamList, 0));
+//
+//        (Printing the following psi list:)
+//        int param0
+//
+//        com.ifpb.A param1
+//
+//        com.ifpb.C param2
 
         List<PsiElement> argsList = createArgsList();
         printPsiList(argsList);
+//
+//        (Printing the following psi list:)
+//        param0
+//
+//                param1
 
         List<PsiElement> recursiveArgsList = new ArrayList<>();
         printPsiList(createArgsList(psiExpression, chosenCall.getTargetMethod().getMethodName(), recursiveArgsList, 0));
+//
+//        (Printing the following psi list:)
+//        param0
+//
+//                param1
+//
+//        param2
 
         createdMethod = addParameters(createdMethod, recursiveParamList);
 
-        printPsi(createdMethod);
+        printPsi(createdMethod); // public com.ifpb.A newMethod(int param0, com.ifpb.A param1, com.ifpb.C param2) {}
 
         PsiElement newExpression = duplicateElement(psiExpression);
 
+        printPsi(newExpression); // this.getElements(param2).set(param0, param1)
+
         PsiElement newCall = createCall(psiExpression, chosenCall.getTargetMethod().getMethodName());
 
-        printPsi(newCall);
+        printPsi(newCall); // getA().newMethod(param0, param1, param2)
 
-        newCall = replaceArgs(newCall, recursiveParamList, 0);
+        List<PsiElement> oldArgs = new ArrayList<>();
+        printPsiList(collectArgs(oldArgs));
+//
+//        (Printing the following psi list:)
+//        0
+//
+//                new A()
+//
+//        this
 
-        printPsi(newCall);
+        newCall = replaceArgs(newCall, oldArgs, 0);
+
+        printPsi(newCall); // getA().newMethod(0, new A(), this)
 
         //newExpression = replaceArgs(newExpression, argsList);
 
@@ -66,26 +116,204 @@ public class RefactorImplementation implements Refactor {
 
         newExpression = replaceCaller(newExpression, chosenCall.getTargetMethod().getMethodName());
 
-        printPsi(newExpression);
+        printPsi(newExpression); // this.getElements(param2).set(param0, param1)
 
-        printPsi(psiExpression);
+        printPsi(psiExpression); // getA().getElements(this).set(0, new A())
 
         createdMethod = createReturn(createdMethod);
 
-        printPsi(createdMethod);
+        printPsi(createdMethod); // public com.ifpb.A newMethod(int param0, com.ifpb.A param1, com.ifpb.C param2) {return;}
 
         createdMethod = addReturn(createdMethod, newExpression);
 
-        printPsi(createdMethod);
+        printPsi(createdMethod); // public com.ifpb.A newMethod(int param0, com.ifpb.A param1, com.ifpb.C param2) {return this.getElements(param2).set(param0, param1);}
     }
 
-    public void run() {
+    @Override
+    public void applyChanges() {
+        String[] namePieces = chosenCall.getTargetClass().split("[.]");
+        PsiClass targetClass = searchClass(namePieces[namePieces.length - 1]);
 
+        if (targetClass == null) {
+            return;
+        }
+
+        PsiElement createdMethod = createMethod();
+        printPsi(createdMethod); // public com.ifpb.A newMethod() {}
+
+        List<PsiElement> recursiveParamList = new ArrayList<>();
+        printPsiList(createParamList(psiExpression, chosenCall.getTargetMethod().getMethodName(), recursiveParamList, 0));
+//
+//        (Printing the following psi list:)
+//        int param0
+//
+//        com.ifpb.A param1
+//
+//        com.ifpb.C param2
+
+        createdMethod = addParameters(createdMethod, recursiveParamList);
+        printPsi(createdMethod); // public com.ifpb.A newMethod(int param0, com.ifpb.A param1, com.ifpb.C param2) {}
+
+        createdMethod = createReturn(createdMethod);
+        printPsi(createdMethod); // public com.ifpb.A newMethod(int param0, com.ifpb.A param1, com.ifpb.C param2) {return;}
+
+        PsiElement newExpression = duplicateElement(psiExpression);
+        printPsi(newExpression); // this.getElements(param2).set(param0, param1)
+
+        List<PsiElement> recursiveArgsList = new ArrayList<>();
+        printPsiList(createArgsList(psiExpression, chosenCall.getTargetMethod().getMethodName(), recursiveArgsList, 0));
+//
+//        (Printing the following psi list:)
+//        param0
+//
+//                param1
+//
+//        param2
+
+        newExpression = replaceArgs(newExpression, newExpression, chosenCall.getTargetMethod().getMethodName(), recursiveArgsList, 0);
+
+        newExpression = replaceCaller(newExpression, chosenCall.getTargetMethod().getMethodName());
+        printPsi(newExpression); // this.getElements(param2).set(param0, param1)
+
+        createdMethod = addReturn(createdMethod, newExpression);
+        printPsi(createdMethod); // public com.ifpb.A newMethod(int param0, com.ifpb.A param1, com.ifpb.C param2) {return this.getElements(param2).set(param0, param1);}
+
+        targetClass.addBefore(createdMethod, targetClass.getLastChild());
+
+        // client class transformation
+
+        PsiElement newCall = createCall(psiExpression, chosenCall.getTargetMethod().getMethodName());
+        printPsi(newCall); // getA().newMethod(param0, param1, param2)
+
+        List<PsiElement> oldArgs = new ArrayList<>();
+        printPsiList(collectArgs(oldArgs));
+//
+//        (Printing the following psi list:)
+//        0
+//
+//                new A()
+//
+//        this
+
+        newCall = replaceArgs(newCall, oldArgs, 0);
+        printPsi(newCall); // getA().newMethod(0, new A(), this)
+
+        psiExpression.replace(newCall);
+
+        // update changes counter
+        changesCount++;
+    }
+
+    @Override
+    public boolean isAvailable() {
+
+        if (psiExpression == null) {
+            return false;
+        }
+
+        chooseCall();
+
+        if (chosenCall == null) {
+            return false;
+        }
+
+        if (chosenCall.getTargetClass() == null) {
+            return false;
+        }
+
+        if (project == null) {
+            return false;
+        }
+
+
+        return true;
+    }
+
+    @Override
+    public void setExpression(PsiElement element) {
+        this.psiExpression = element;
+    }
+
+    @Override
+    public void setProject(Project project) {
+        this.project = project;
+        this.factory = JavaPsiFacade.getInstance(project).getElementFactory();
+        this.cache = PsiShortNamesCache.getInstance(project);
+    }
+
+    @Override
+    public void setChosenCall(Call call) {
+        this.chosenCall = call;
+        System.out.println("Chosen Call: " + chosenCall);
+    }
+
+    private void chooseCall() {
+        setChosenCall(PsiToCallConverter.getCallFrom((PsiMethodCallExpression) psiExpression));
+    }
+
+    private PsiClass searchClass(String name) {
+
+        PsiClass[] classes = cache.getClassesByName(name, GlobalSearchScope.allScope(project));
+        if (classes.length < 1) {
+            return null;
+        }
+
+        return classes[0];
+    }
+
+    private List<PsiElement> collectArgs(List<PsiElement> argsList) {
+
+        return collectArgs(psiExpression, chosenCall.getTargetMethod().getMethodName(), argsList, 0);
+    }
+
+    private List<PsiElement> collectArgs(PsiElement methodExpression, String stopName, List<PsiElement> argsList, int s) {
+
+        if (!(methodExpression instanceof PsiMethodCallExpression)) {
+            return argsList;
+        }
+
+        PsiElement qualifier = ((PsiMethodCallExpression) methodExpression).getMethodExpression().getQualifierExpression();
+        if (qualifier == null) {
+            return argsList;
+        }
+
+        if (!stopName.equals(((PsiMethodCallExpression) methodExpression).getMethodExpression().getText())) {
+            List<PsiElement> thisArgsList = collectArgs(methodExpression, s);
+            thisArgsList.forEach(e -> {
+                argsList.add(e);
+            });
+
+            return collectArgs(qualifier, stopName, argsList, s+thisArgsList.size());
+        }
+
+        return argsList;
+    }
+
+    private List<PsiElement> collectArgs(PsiElement methodExpression, int s) {
+        List<PsiElement> argsList = new ArrayList<>();
+
+        if (!(methodExpression instanceof PsiMethodCallExpression)) {
+            return argsList;
+        }
+
+        PsiExpressionList psiList = ((PsiMethodCallExpression) methodExpression).getArgumentList();
+        if (psiList == null) {
+            return argsList;
+        }
+
+        int i = s;
+        for (PsiExpression expression :
+                psiList.getExpressions()) {
+            argsList.add(expression);
+            i++;
+        }
+
+        return argsList;
     }
 
     private PsiElement createCall(PsiElement methodExpression, String stopName) {
         String caller = getCaller(methodExpression, stopName).getText();
-        String newName = "newMethod";
+        String newName = "newMethod" + changesCount;
         PsiElement createdCall = factory.createExpressionFromText(caller+"."+newName+"()", null);
 
         PsiElement psiList = ((PsiMethodCallExpression) createdCall).getArgumentList();
@@ -387,6 +615,6 @@ public class RefactorImplementation implements Refactor {
 
         PsiType psiType = ((PsiMethodCallExpression) psiExpression).getType();
 
-        return factory.createMethod("newMethod", psiType, null);
+        return factory.createMethod("newMethod" + changesCount, psiType, null);
     }
 }
