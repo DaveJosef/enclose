@@ -112,6 +112,8 @@ public class PsiToCallConverter {
         // Target Class
         PsiType qualiExpr2Type = qualiExpr2.getType();
         if (qualiExpr2Type == null) {
+            currentCall.setTargetClass(qualiExpr2.getText());
+
             return currentCall;
         }
         targetClass = qualiExpr2Type.getCanonicalText();
