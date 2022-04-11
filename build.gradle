@@ -28,3 +28,6 @@ patchPluginXml {
 test {
     useJUnitPlatform()
 }
+runIde {
+    maxHeapSize = "2G"
+}

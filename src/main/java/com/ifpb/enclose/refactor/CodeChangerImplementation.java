@@ -4,6 +4,11 @@ import com.ifpb.enclose.controllers.calls.Call;
 import com.ifpb.enclose.controllers.calls.CallList;
 import com.ifpb.enclose.controllers.calls.PsiToCallConverter;
 import com.ifpb.visitor.MethodCallVisitor;
+import com.intellij.codeInsight.daemon.impl.quickfix.CreateMethodFromMethodReferenceFix;
+import com.intellij.codeInsight.daemon.impl.quickfix.CreateMethodFromUsageFix;
+import com.intellij.lang.LanguageRefactoringSupport;
+import com.intellij.lang.jvm.actions.CreateMethodActionGroup;
+import com.intellij.lang.refactoring.RefactoringSupportProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -11,6 +16,10 @@ import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.refactoring.RefactoringSettings;
+import com.intellij.refactoring.actions.RefactoringActionContextUtil;
+import com.intellij.refactoring.util.RefactoringMessageDialog;
+import org.codehaus.groovy.reflection.GeneratedMetaMethod;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -42,7 +51,7 @@ public class CodeChangerImplementation implements CodeChanger {
 
         printPsi(psiExpression); // getA().getElements(this).set(0, new A())
 
-        PsiElement createdMethod = createMethod();
+        PsiElement createdMethod = createMethod(false);
 
         printPsi(createdMethod); // public com.ifpb.A newMethod() {}
 
@@ -114,7 +123,7 @@ public class CodeChangerImplementation implements CodeChanger {
 
         newExpression = replaceArgs(newExpression, newExpression, chosenCall.getTargetMethod().getMethodName(), recursiveArgsList, 0);
 
-        newExpression = replaceCaller(newExpression, chosenCall.getTargetMethod().getMethodName());
+        newExpression = replaceCaller(newExpression, chosenCall.getTargetMethod().getMethodName(), false);
 
         printPsi(newExpression); // this.getElements(param2).set(param0, param1)
 
@@ -131,15 +140,19 @@ public class CodeChangerImplementation implements CodeChanger {
 
     @Override
     public void applyChanges() {
-        String[] namePieces = chosenCall.getTargetClass().split("[.]");
-        PsiClass targetClass = searchClass(namePieces[namePieces.length - 1]);
+        PsiClass targetClass = searchClass(getSimplifiedClass(chosenCall.getTargetClass()));
 
         if (targetClass == null) {
             return;
         }
 
-        PsiElement createdMethod = createMethod();
-        printPsi(createdMethod); // public com.ifpb.A newMethod() {}
+        boolean isMethodStatic = false;
+        if (!chosenCall.getTargetClass().contains(".")) {
+            isMethodStatic = true;
+        }
+//
+//        PsiElement createdMethod = createMethod(isMethodStatic);
+//        printPsi(createdMethod); // public com.ifpb.A newMethod() {}
 
         List<PsiElement> recursiveParamList = new ArrayList<>();
         printPsiList(createParamList(psiExpression, chosenCall.getTargetMethod().getMethodName(), recursiveParamList, 0));
@@ -150,12 +163,12 @@ public class CodeChangerImplementation implements CodeChanger {
 //        com.ifpb.A param1
 //
 //        com.ifpb.C param2
-
-        createdMethod = addParameters(createdMethod, recursiveParamList);
-        printPsi(createdMethod); // public com.ifpb.A newMethod(int param0, com.ifpb.A param1, com.ifpb.C param2) {}
-
-        createdMethod = createReturn(createdMethod);
-        printPsi(createdMethod); // public com.ifpb.A newMethod(int param0, com.ifpb.A param1, com.ifpb.C param2) {return;}
+//
+//        createdMethod = addParameters(createdMethod, recursiveParamList);
+//        printPsi(createdMethod); // public com.ifpb.A newMethod(int param0, com.ifpb.A param1, com.ifpb.C param2) {}
+//
+//        createdMethod = createStatement(createdMethod);
+//        printPsi(createdMethod); // public com.ifpb.A newMethod(int param0, com.ifpb.A param1, com.ifpb.C param2) {return;}
 
         PsiElement newExpression = duplicateElement(psiExpression);
         printPsi(newExpression); // this.getElements(param2).set(param0, param1)
@@ -172,13 +185,13 @@ public class CodeChangerImplementation implements CodeChanger {
 
         newExpression = replaceArgs(newExpression, newExpression, chosenCall.getTargetMethod().getMethodName(), recursiveArgsList, 0);
 
-        newExpression = replaceCaller(newExpression, chosenCall.getTargetMethod().getMethodName());
+        newExpression = replaceCaller(newExpression, chosenCall.getTargetMethod().getMethodName(), isMethodStatic);
         printPsi(newExpression); // this.getElements(param2).set(param0, param1)
-
-        createdMethod = addReturn(createdMethod, newExpression);
-        printPsi(createdMethod); // public com.ifpb.A newMethod(int param0, com.ifpb.A param1, com.ifpb.C param2) {return this.getElements(param2).set(param0, param1);}
-
-        targetClass.addBefore(createdMethod, targetClass.getLastChild());
+//
+//        createdMethod = addReturn(createdMethod, newExpression);
+//        printPsi(createdMethod); // public com.ifpb.A newMethod(int param0, com.ifpb.A param1, com.ifpb.C param2) {return this.getElements(param2).set(param0, param1);}
+//
+//        targetClass.addBefore(createdMethod, targetClass.getLastChild());
 
         // client class transformation
 
@@ -200,8 +213,43 @@ public class CodeChangerImplementation implements CodeChanger {
 
         psiExpression.replace(newCall);
 
+        // create method in target class with gui
+        PsiClass clientClass = searchClass(getSimplifiedClass(chosenCall.getClientClass()));
+
+        //CreateMethodFromUsageFix.createMethod(targetClass, clientClass, null, "newMethod");
+
         // update changes counter
         changesCount++;
+    }
+
+    private PsiElement createStatement(PsiElement method) {
+        if (!(method instanceof PsiMethod)) {
+            return method;
+        }
+
+        if (!(((PsiMethod) method).getReturnType().getCanonicalText() == "void")) {
+
+            createReturn(method);
+
+            return method;
+        }
+
+        PsiCodeBlock psiBlock = ((PsiMethod) method).getBody();
+        if (psiBlock == null) {
+            return method;
+        }
+
+        PsiElement psiReturn = factory.createStatementFromText(";", null);
+        psiBlock.addBefore(psiReturn, psiBlock.getLastChild());
+
+        return method;
+    }
+
+    private String getSimplifiedClass(String classInCall) {
+        String[] namePieces = classInCall.split("[<]");
+        String className = namePieces[0];
+        namePieces = className.split("[.]");
+        return namePieces[namePieces.length - 1];
     }
 
     @Override
@@ -344,10 +392,17 @@ public class CodeChangerImplementation implements CodeChanger {
         return method;
     }
 
-    private PsiElement replaceCaller(PsiElement newExpression, String stopName) {
+    private PsiElement replaceCaller(PsiElement newExpression, String stopName, boolean isMethodStatic) {
 
         PsiElement caller = getCaller(newExpression, stopName);
-        caller.replace(createThisExpression());
+
+        if (!isMethodStatic) {
+            caller.replace(createThisExpression());
+
+            return newExpression;
+        }
+
+        caller.delete();
 
         return newExpression;
     }
@@ -367,11 +422,12 @@ public class CodeChangerImplementation implements CodeChanger {
             return methodExpression;
         }
 
-        if (!stopName.equals(((PsiMethodCallExpression) methodExpression).getMethodExpression().getText())) {
+        if (!stopName.equals(((PsiMethodCallExpression) methodExpression).getMethodExpression().getReferenceName())) {
+            System.out.println(((PsiMethodCallExpression) methodExpression).getMethodExpression().getReferenceName());
             return getCaller(qualifier, stopName);
         }
 
-        return methodExpression;
+        return qualifier;
     }
 
     private List<PsiElement> createParamList(PsiElement methodExpression, String stopName, List<PsiElement> paramList, int s) {
@@ -608,13 +664,22 @@ public class CodeChangerImplementation implements CodeChanger {
         System.out.println(e.getText() + "\n");
     }
 
-    private PsiElement createMethod() {
+    private PsiElement createMethod(boolean isMethodStatic) {
         if (!(psiExpression instanceof PsiMethodCallExpression)) {
             return null;
         }
 
         PsiType psiType = ((PsiMethodCallExpression) psiExpression).getType();
 
-        return factory.createMethod("newMethod" + changesCount, psiType, null);
+        PsiMethod psiMethod = factory.createMethod("newMethod" + changesCount, psiType, null);
+
+        if (!isMethodStatic) {
+            return psiMethod;
+        }
+
+        PsiModifierList psiModifiers = psiMethod.getModifierList();
+        psiModifiers.addBefore(factory.createKeyword("static"), psiModifiers.getLastChild());
+
+        return psiMethod;
     }
 }
