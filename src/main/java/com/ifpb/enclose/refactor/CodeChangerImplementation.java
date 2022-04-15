@@ -150,9 +150,9 @@ public class CodeChangerImplementation implements CodeChanger {
         if (!chosenCall.getTargetClass().contains(".")) {
             isMethodStatic = true;
         }
-//
-//        PsiElement createdMethod = createMethod(isMethodStatic);
-//        printPsi(createdMethod); // public com.ifpb.A newMethod() {}
+
+        PsiElement createdMethod = createMethod(isMethodStatic);
+        printPsi(createdMethod); // public com.ifpb.A newMethod() {}
 
         List<PsiElement> recursiveParamList = new ArrayList<>();
         printPsiList(createParamList(psiExpression, chosenCall.getTargetMethod().getMethodName(), recursiveParamList, 0));
@@ -163,12 +163,12 @@ public class CodeChangerImplementation implements CodeChanger {
 //        com.ifpb.A param1
 //
 //        com.ifpb.C param2
-//
-//        createdMethod = addParameters(createdMethod, recursiveParamList);
-//        printPsi(createdMethod); // public com.ifpb.A newMethod(int param0, com.ifpb.A param1, com.ifpb.C param2) {}
-//
-//        createdMethod = createStatement(createdMethod);
-//        printPsi(createdMethod); // public com.ifpb.A newMethod(int param0, com.ifpb.A param1, com.ifpb.C param2) {return;}
+
+        createdMethod = addParameters(createdMethod, recursiveParamList);
+        printPsi(createdMethod); // public com.ifpb.A newMethod(int param0, com.ifpb.A param1, com.ifpb.C param2) {}
+
+        createdMethod = createStatement(createdMethod);
+        printPsi(createdMethod); // public com.ifpb.A newMethod(int param0, com.ifpb.A param1, com.ifpb.C param2) {return;}
 
         PsiElement newExpression = duplicateElement(psiExpression);
         printPsi(newExpression); // this.getElements(param2).set(param0, param1)
@@ -187,11 +187,11 @@ public class CodeChangerImplementation implements CodeChanger {
 
         newExpression = replaceCaller(newExpression, chosenCall.getTargetMethod().getMethodName(), isMethodStatic);
         printPsi(newExpression); // this.getElements(param2).set(param0, param1)
-//
-//        createdMethod = addReturn(createdMethod, newExpression);
-//        printPsi(createdMethod); // public com.ifpb.A newMethod(int param0, com.ifpb.A param1, com.ifpb.C param2) {return this.getElements(param2).set(param0, param1);}
-//
-//        targetClass.addBefore(createdMethod, targetClass.getLastChild());
+
+        createdMethod = addReturn(createdMethod, newExpression);
+        printPsi(createdMethod); // public com.ifpb.A newMethod(int param0, com.ifpb.A param1, com.ifpb.C param2) {return this.getElements(param2).set(param0, param1);}
+
+        targetClass.addBefore(createdMethod, targetClass.getLastChild());
 
         // client class transformation
 

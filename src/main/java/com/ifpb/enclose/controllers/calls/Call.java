@@ -114,12 +114,12 @@ public class Call {
     public String toString() {
         return new StringBuilder()
                 .append("<")
-                .append(targetClass).append(", ")
-                .append(targetMethod).append(", ")
-                .append(targetMethod.getReturnType()).append(", ")
-                .append(clientClass).append(", ")
-                .append(clientMethod).append(", ")
-                .append(clientMethod.getReturnType()).append(", ")
+                .append(targetClass).append("; ")
+                .append(targetMethod).append("; ")
+                .append(targetMethod.getReturnType()).append("; ")
+                .append(clientClass).append("; ")
+                .append(clientMethod).append("; ")
+                .append(clientMethod.getReturnType()).append("; ")
                 .append(collectionMethod)
                 .append(">")
                 .toString();
