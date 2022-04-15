@@ -42,8 +42,8 @@ public class RefactorIntention extends PsiElementBaseIntentionAction implements 
 
     @Override
     public void invoke(@NotNull Project project, Editor editor, @NotNull PsiElement element) throws IncorrectOperationException {
-        //codeChanger.applyChanges();
-        showExtractGuide(project, editor, element.getContainingFile(), PsiTreeUtil.getParentOfType(element, PsiMethodCallExpression.class));
+        codeChanger.applyChanges();
+        //showExtractGuide(project, editor, element.getContainingFile(), PsiTreeUtil.getParentOfType(element, PsiMethodCallExpression.class));
     }
 
     @Override
